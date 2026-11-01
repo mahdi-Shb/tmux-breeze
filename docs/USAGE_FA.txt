@@ -1,0 +1,117 @@
+ابزار tmux → PNG با ظاهر داخلی Konsole Breeze
+=============================================
+
+نصب در Debian 13:
+sudo apt install tmux python3-pil python3-wcwidth fonts-dejavu-core
+
+اجرای معمول؛ SESSION_NAME نام دقیق session است:
+python3 tmux_shots.py 'SESSION_NAME' -o ./my-shots
+
+پوشهٔ خروجی باید جدید باشد. برای هر بار اجرا یک نام جدید انتخاب کنید، یا
+گزینهٔ -o را حذف کنید تا نام پوشه به‌صورت خودکار ساخته شود.
+ابزار را با همان کاربری اجرا کنید که session را ساخته است؛ sudo لازم نیست.
+
+پیش‌فرض‌های درخواست‌شده:
+- تمام windowها و paneهای session، با عکس جداگانه برای هر pane.
+- تمام تاریخچهٔ موجود در tmux همراه صفحهٔ فعلی، از قدیمی به جدید.
+- حداکثر ۴۰ سطر فیزیکی در هر PNG، بدون هم‌پوشانی یا حذف خط.
+- عرض دقیق ۱۸۹۴ پیکسل، حاشیهٔ کوچک، پس‌زمینهٔ #232627 و پالت Breeze.
+- فونت DejaVu Sans Mono با نسخه‌های bold و italic.
+- بدون قاب پنجره، تب، scrollbar، عنوان، توضیح یا نشانگر ساختگی.
+- حفظ شکست خط، فاصله‌ها، رنگ متن و پس‌زمینه، رنگ‌های ۲۵۶تایی و RGB،
+  bold، italic، inverse، faint، underline و strike.
+- آخرین عکس هر بخش فقط به‌اندازهٔ سطرهای باقی‌مانده ارتفاع دارد.
+- پهنای واقعی pane حفظ می‌شود و تصویر با نسبت ثابت به ۱۸۹۴ پیکسل می‌رسد؛
+  بنابراین متن paneهای خیلی عریض ریزتر دیده می‌شود، اما بریده نمی‌شود.
+
+ساختار خروجی:
+my-shots/
+  manifest.json
+  window-000-WINDOW_NAME/
+    pane-00-PANE_ID/
+      current/
+        capture.ansi
+        part-0001.png
+        part-0002.png
+
+اگر pane در صفحهٔ جایگزین برنامه‌ای مثل nano یا vim باشد، بخش main برای
+صفحهٔ عادی و تاریخچهٔ ذخیره‌شدهٔ آن، و بخش alternate برای صفحهٔ فعلی برنامه
+ساخته می‌شود. تصویر پنجرهٔ کامل با چیدمان چند pane تولید نمی‌شود.
+
+manifest.json شمارهٔ سطرهای هر عکس، زمان ثبت، ابعاد، شناسهٔ pane، خطاها و
+SHA-256 فایل ANSI را نگه می‌دارد. capture.ansi همان خروجی دریافت‌شده از tmux
+است. هیچ فرمان، prompt، نام کاربر، مسیر یا خروجی جدیدی به محتوا اضافه نمی‌شود.
+
+گزینه‌های دیگر:
+python3 tmux_shots.py 'SESSION_NAME' --window 2 -o ./window-2
+python3 tmux_shots.py 'SESSION_NAME' --window 'build' -o ./build-window
+python3 tmux_shots.py 'SESSION_NAME' --window '@3' -o ./window-id-3
+python3 tmux_shots.py 'SESSION_NAME' --window 2 --pane 1 -o ./window-2-pane-1
+python3 tmux_shots.py 'SESSION_NAME' --pane 2.1 -o ./pane-2-1
+python3 tmux_shots.py 'SESSION_NAME' --pane '%7' -o ./pane-id-7
+python3 tmux_shots.py 'SESSION_NAME' --rows 30 --width 1894 -o ./shots-30
+python3 tmux_shots.py 'SESSION_NAME' --screen-only -o ./current-screens
+python3 tmux_shots.py 'SESSION_NAME' -L custom-server -o ./custom-shots
+python3 tmux_shots.py 'SESSION_NAME' --font-dir /path/to/dejavu -o ./custom-font
+python3 tmux_shots.py --help
+
+--window شمارهٔ window، شناسهٔ @ID یا نام کامل و دقیق آن را می‌گیرد.
+برای نام‌هایی که خودشان عدد هستند از --window 'name:2' استفاده کنید.
+--pane یا شناسهٔ %ID است، یا ترکیب شمارهٔ window و pane مثل 2.1.
+شمارهٔ خالیِ pane فقط همراه --window پذیرفته می‌شود، چون هر window می‌تواند
+pane شمارهٔ صفر داشته باشد. شماره‌ها همان index واقعی tmux هستند، نه ترتیب
+فهرست یا عددی که لزوماً از صفر شروع شود. هر دو انتخابگر محدود به session
+انتخاب‌شده‌اند؛ انتخاب متناقض، نام مبهم و شناسهٔ خارج از آن رد می‌شود.
+بدون این گزینه‌ها همچنان همهٔ windowها و paneها ثبت می‌شوند.
+
+--font-dir باید شامل چهار فایل DejaVuSansMono.ttf، DejaVuSansMono-Bold.ttf،
+DejaVuSansMono-Oblique.ttf و DejaVuSansMono-BoldOblique.ttf باشد.
+--no-bold-bright نگاشت رنگ‌های bold به گونهٔ روشن‌تر را خاموش می‌کند.
+
+نکته‌های ثبت:
+- ابزار فقط داده را می‌خواند؛ send-keys، clear-history، تغییر اندازه یا انتخاب
+  window و pane انجام نمی‌دهد. ابتدا همهٔ captureها گرفته می‌شوند و سپس عکس‌ها
+  ساخته می‌شوند تا پیام‌های پیشرفت ابزار وارد ثبت خودش نشوند.
+- در صورت امکان آن را از ترمینالی بیرون session هدف اجرا کنید؛ در غیر این صورت
+  خود فرمان اجرای ابزار هم بخشی از محتوای واقعی آن pane خواهد بود.
+- فقط تاریخچه‌ای که هنوز در tmux مانده قابل ثبت است. خروجیِ حذف‌شده بر اثر
+  history-limit، clear-history یا بسته‌شدن pane قابل بازیابی نیست.
+- افزایش history-limit بعد از حذف تاریخچه، سطرهای قبلی را برنمی‌گرداند.
+- رنگ فقط هنگامی حفظ می‌شود که tmux واقعاً آن را ذخیره کرده باشد؛ خروجی ساده
+  به صورت حدسی رنگ‌آمیزی نمی‌شود.
+- ثبت paneها پشت سر هم است؛ برنامه‌های در حال اجرا متوقف نمی‌شوند و یک عکس
+  اتمیک از کل session تضمین نمی‌شود. هنگام ثبت بهتر است خروجی‌ها آرام باشند.
+- هنگام copy-mode، محتوای واقعی برنامه و تاریخچه ثبت می‌شود؛ نوار و selection
+  مربوط به copy-mode داخل تصویر نمی‌آید.
+- خروجی‌ها بازنمایی شبکهٔ متن tmux با پالت رسمی Breeze هستند. رندر فونت توسط
+  Pillow انجام می‌شود و تضمین برابری پیکسل‌به‌پیکسل با Qt/Konsole نیست.
+- فونت جایگزین، شکل‌دهی پیچیدهٔ فارسی/emoji و تصاویر Sixel/Kitty پیاده‌سازی
+  نشده‌اند؛ برای خروجی متن و کد و ابزارهای متنی عادی در نظر گرفته شده است.
+
+کد خروج:
+0 = ثبت و رندر کامل بدون هشدار parser
+1 = خطا؛ برای خطاهای بعضی paneها، خروجی بقیه نگه داشته می‌شود
+2 = تصاویر ساخته شده‌اند ولی parser هشدار داشته؛ manifest.json را ببینید
+130 = توقف با Ctrl+C
+
+نصب جایگزین در محیط مجازی Python:
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -r requirements.txt
+این روش هم به خود tmux و فونت‌های DejaVu نیاز دارد.
+
+اجرای تست‌ها در Linux:
+python3 -m unittest -v
+تست زنده یک سرور tmux جدا با socket تصادفی می‌سازد و فقط همان سرور تست را
+در پایان می‌بندد. کد اصلی ابزار هیچ session یا سروری نمی‌سازد یا نمی‌بندد.
+
+مبنای پیاده‌سازی:
+https://man.openbsd.org/tmux#capture-pane
+https://raw.githubusercontent.com/tmux/tmux/master/cmd-capture-pane.c
+https://raw.githubusercontent.com/KDE/konsole/master/data/color-schemes/Breeze.colorscheme
+https://raw.githubusercontent.com/KDE/konsole/master/src/Screen.cpp
+https://raw.githubusercontent.com/KDE/konsole/master/src/characters/CharacterColor.h
+
+اعتبارسنجی در محیط تهیهٔ این بسته: ۱۷ تست خودکار پاس شده؛ تست زندهٔ tmux
+در محیط ویندوز در دسترس نبوده و اجرا نشده است. تصاویر نمونهٔ داخلیِ تست
+از دادهٔ fixture ساخته و از نظر چیدمان بررسی شده‌اند.
