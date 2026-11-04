@@ -1,117 +1,234 @@
-ابزار tmux → PNG با ظاهر داخلی Konsole Breeze
-=============================================
+tmux-breeze 0.2 — ثبت tmux و آماده‌سازی تصاویر برای گزارش
+=======================================================
 
-نصب در Debian 13:
-sudo apt install tmux python3-pil python3-wcwidth fonts-dejavu-core
+ابزار، متن و ویژگی‌های ANSI را از شبکهٔ سلولی tmux ذخیره می‌کند و با پالت
+Konsole Breeze به PNG تبدیل می‌کند. برای تنظیم ظاهر یک capture ذخیره‌شده
+نیازی به تکرار اجرای برنامه، وجود session اصلی یا اتصال به tmux ندارید.
 
-اجرای معمول؛ SESSION_NAME نام دقیق session است:
-python3 tmux_shots.py 'SESSION_NAME' -o ./my-shots
+۱. نصب
+------
+Python 3.10 یا جدیدتر لازم است. روی Debian یا Ubuntu:
 
-پوشهٔ خروجی باید جدید باشد. برای هر بار اجرا یک نام جدید انتخاب کنید، یا
-گزینهٔ -o را حذف کنید تا نام پوشه به‌صورت خودکار ساخته شود.
-ابزار را با همان کاربری اجرا کنید که session را ساخته است؛ sudo لازم نیست.
-
-پیش‌فرض‌های درخواست‌شده:
-- تمام windowها و paneهای session، با عکس جداگانه برای هر pane.
-- تمام تاریخچهٔ موجود در tmux همراه صفحهٔ فعلی، از قدیمی به جدید.
-- حداکثر ۴۰ سطر فیزیکی در هر PNG، بدون هم‌پوشانی یا حذف خط.
-- عرض دقیق ۱۸۹۴ پیکسل، حاشیهٔ کوچک، پس‌زمینهٔ #232627 و پالت Breeze.
-- فونت DejaVu Sans Mono با نسخه‌های bold و italic.
-- بدون قاب پنجره، تب، scrollbar، عنوان، توضیح یا نشانگر ساختگی.
-- حفظ شکست خط، فاصله‌ها، رنگ متن و پس‌زمینه، رنگ‌های ۲۵۶تایی و RGB،
-  bold، italic، inverse، faint، underline و strike.
-- آخرین عکس هر بخش فقط به‌اندازهٔ سطرهای باقی‌مانده ارتفاع دارد.
-- پهنای واقعی pane حفظ می‌شود و تصویر با نسبت ثابت به ۱۸۹۴ پیکسل می‌رسد؛
-  بنابراین متن paneهای خیلی عریض ریزتر دیده می‌شود، اما بریده نمی‌شود.
-
-ساختار خروجی:
-my-shots/
-  manifest.json
-  window-000-WINDOW_NAME/
-    pane-00-PANE_ID/
-      current/
-        capture.ansi
-        part-0001.png
-        part-0002.png
-
-اگر pane در صفحهٔ جایگزین برنامه‌ای مثل nano یا vim باشد، بخش main برای
-صفحهٔ عادی و تاریخچهٔ ذخیره‌شدهٔ آن، و بخش alternate برای صفحهٔ فعلی برنامه
-ساخته می‌شود. تصویر پنجرهٔ کامل با چیدمان چند pane تولید نمی‌شود.
-
-manifest.json شمارهٔ سطرهای هر عکس، زمان ثبت، ابعاد، شناسهٔ pane، خطاها و
-SHA-256 فایل ANSI را نگه می‌دارد. capture.ansi همان خروجی دریافت‌شده از tmux
-است. هیچ فرمان، prompt، نام کاربر، مسیر یا خروجی جدیدی به محتوا اضافه نمی‌شود.
-
-گزینه‌های دیگر:
-python3 tmux_shots.py 'SESSION_NAME' --window 2 -o ./window-2
-python3 tmux_shots.py 'SESSION_NAME' --window 'build' -o ./build-window
-python3 tmux_shots.py 'SESSION_NAME' --window '@3' -o ./window-id-3
-python3 tmux_shots.py 'SESSION_NAME' --window 2 --pane 1 -o ./window-2-pane-1
-python3 tmux_shots.py 'SESSION_NAME' --pane 2.1 -o ./pane-2-1
-python3 tmux_shots.py 'SESSION_NAME' --pane '%7' -o ./pane-id-7
-python3 tmux_shots.py 'SESSION_NAME' --rows 30 --width 1894 -o ./shots-30
-python3 tmux_shots.py 'SESSION_NAME' --screen-only -o ./current-screens
-python3 tmux_shots.py 'SESSION_NAME' -L custom-server -o ./custom-shots
-python3 tmux_shots.py 'SESSION_NAME' --font-dir /path/to/dejavu -o ./custom-font
-python3 tmux_shots.py --help
-
---window شمارهٔ window، شناسهٔ @ID یا نام کامل و دقیق آن را می‌گیرد.
-برای نام‌هایی که خودشان عدد هستند از --window 'name:2' استفاده کنید.
---pane یا شناسهٔ %ID است، یا ترکیب شمارهٔ window و pane مثل 2.1.
-شمارهٔ خالیِ pane فقط همراه --window پذیرفته می‌شود، چون هر window می‌تواند
-pane شمارهٔ صفر داشته باشد. شماره‌ها همان index واقعی tmux هستند، نه ترتیب
-فهرست یا عددی که لزوماً از صفر شروع شود. هر دو انتخابگر محدود به session
-انتخاب‌شده‌اند؛ انتخاب متناقض، نام مبهم و شناسهٔ خارج از آن رد می‌شود.
-بدون این گزینه‌ها همچنان همهٔ windowها و paneها ثبت می‌شوند.
-
---font-dir باید شامل چهار فایل DejaVuSansMono.ttf، DejaVuSansMono-Bold.ttf،
-DejaVuSansMono-Oblique.ttf و DejaVuSansMono-BoldOblique.ttf باشد.
---no-bold-bright نگاشت رنگ‌های bold به گونهٔ روشن‌تر را خاموش می‌کند.
-
-نکته‌های ثبت:
-- ابزار فقط داده را می‌خواند؛ send-keys، clear-history، تغییر اندازه یا انتخاب
-  window و pane انجام نمی‌دهد. ابتدا همهٔ captureها گرفته می‌شوند و سپس عکس‌ها
-  ساخته می‌شوند تا پیام‌های پیشرفت ابزار وارد ثبت خودش نشوند.
-- در صورت امکان آن را از ترمینالی بیرون session هدف اجرا کنید؛ در غیر این صورت
-  خود فرمان اجرای ابزار هم بخشی از محتوای واقعی آن pane خواهد بود.
-- فقط تاریخچه‌ای که هنوز در tmux مانده قابل ثبت است. خروجیِ حذف‌شده بر اثر
-  history-limit، clear-history یا بسته‌شدن pane قابل بازیابی نیست.
-- افزایش history-limit بعد از حذف تاریخچه، سطرهای قبلی را برنمی‌گرداند.
-- رنگ فقط هنگامی حفظ می‌شود که tmux واقعاً آن را ذخیره کرده باشد؛ خروجی ساده
-  به صورت حدسی رنگ‌آمیزی نمی‌شود.
-- ثبت paneها پشت سر هم است؛ برنامه‌های در حال اجرا متوقف نمی‌شوند و یک عکس
-  اتمیک از کل session تضمین نمی‌شود. هنگام ثبت بهتر است خروجی‌ها آرام باشند.
-- هنگام copy-mode، محتوای واقعی برنامه و تاریخچه ثبت می‌شود؛ نوار و selection
-  مربوط به copy-mode داخل تصویر نمی‌آید.
-- خروجی‌ها بازنمایی شبکهٔ متن tmux با پالت رسمی Breeze هستند. رندر فونت توسط
-  Pillow انجام می‌شود و تضمین برابری پیکسل‌به‌پیکسل با Qt/Konsole نیست.
-- فونت جایگزین، شکل‌دهی پیچیدهٔ فارسی/emoji و تصاویر Sixel/Kitty پیاده‌سازی
-  نشده‌اند؛ برای خروجی متن و کد و ابزارهای متنی عادی در نظر گرفته شده است.
-
-کد خروج:
-0 = ثبت و رندر کامل بدون هشدار parser
-1 = خطا؛ برای خطاهای بعضی paneها، خروجی بقیه نگه داشته می‌شود
-2 = تصاویر ساخته شده‌اند ولی parser هشدار داشته؛ manifest.json را ببینید
-130 = توقف با Ctrl+C
-
-نصب جایگزین در محیط مجازی Python:
+sudo apt install tmux fonts-dejavu python3-venv
+git clone https://github.com/mahdi-Shb/tmux-breeze.git
+cd tmux-breeze
 python3 -m venv .venv
 . .venv/bin/activate
-python -m pip install -r requirements.txt
-این روش هم به خود tmux و فونت‌های DejaVu نیاز دارد.
+python -m pip install .
+tmux-breeze --version
 
-اجرای تست‌ها در Linux:
+بستهٔ fonts-dejavu شامل چهار نسخهٔ regular، bold، oblique و bold-oblique
+فونت DejaVu Sans Mono است. در Debian جدید نصب fonts-dejavu-core به‌تنهایی
+فونت‌های لازم را فراهم نمی‌کند.
+
+بدون نصب فرمان tmux-breeze هم می‌توانید از سورس استفاده کنید:
+sudo apt install tmux python3-pil python3-wcwidth fonts-dejavu
+به‌جای tmux-breeze در مثال‌ها، python3 tmux_shots.py بنویسید.
+
+۲. ثبت session، window و pane
+----------------------------
+با همان کاربری اجرا کنید که مالک session است؛ sudo برای خود ابزار لازم نیست.
+SESSION_NAME نام کامل session است. پوشهٔ خروجی -o باید جدید باشد؛ با حذف -o
+نام پوشه به‌صورت خودکار ساخته می‌شود.
+
+tmux-breeze capture 'SESSION_NAME' -o shots
+
+نحوهٔ قدیمی اجرا هم همچنان پشتیبانی می‌شود:
+tmux-breeze 'SESSION_NAME' -o another-capture
+
+فقط window شمارهٔ ۲، نام build یا شناسهٔ @3:
+tmux-breeze 'SESSION_NAME' --window 2 -o window-2
+tmux-breeze 'SESSION_NAME' --window build -o build-window
+tmux-breeze 'SESSION_NAME' --window '@3' -o window-id-3
+
+فقط یک pane:
+tmux-breeze 'SESSION_NAME' --window 2 --pane 1 -o pane-2-1
+tmux-breeze 'SESSION_NAME' --pane 2.1 -o pane-2-1-again
+tmux-breeze 'SESSION_NAME' --pane '%7' -o pane-id-7
+
+شمارهٔ خالی pane فقط همراه --window پذیرفته می‌شود. شماره‌ها همان index
+واقعی tmux هستند و لزوماً از صفر شروع نمی‌شوند. برای window با نام عددی از
+--window 'name:2' استفاده کنید. نام ناقص یا glob جای نام کامل پذیرفته نیست.
+انتخاب‌ها محدود به session درخواستی‌اند و حالت مبهم خطا می‌دهد.
+
+فقط صفحهٔ فعلی، بدون تاریخچه:
+tmux-breeze 'SESSION_NAME' --screen-only -o current
+
+پیش‌فرض‌ها: تمام تاریخچهٔ موجود، حداکثر ۴۰ ردیف فیزیکی در هر تصویر، عرض دقیق
+۱۸۹۴ پیکسل، حاشیهٔ کوچک و فقط محتوای داخلی ترمینال. برش خودکار پیش‌فرض خاموش
+است. ارتفاع تصویر پایانی فقط به‌اندازهٔ ردیف‌های باقی‌مانده است.
+
+اگر برنامه‌ای مانند nano یا vim از صفحهٔ جایگزین استفاده کند، بافر عادیِ
+ذخیره‌شده و تاریخچهٔ آن در main و صفحهٔ فعلی برنامه در alternate ثبت می‌شود.
+بافر shell عادی current نام دارد. ابزار داخل فایل ویرایشگر اسکرول نمی‌کند؛
+از خود nano فقط صفحهٔ قابل‌دیدنِ همان لحظه موجود است.
+
+۳. رندر آفلاین و برش امن فضای خالی پایین
+--------------------------------------
+tmux-breeze render shots/manifest.json --trim-empty-bottom --padding-rows 1 --width 1800 -o report-images
+
+فقط ANSI و metadata ذخیره‌شده خوانده می‌شوند؛ session اصلی می‌تواند بسته
+شده باشد. رندر در پوشه‌ای جدید انجام می‌شود. فایل خام، manifest و تصاویر
+قبلی دست‌نخورده باقی می‌مانند و ANSI بدون تغییر به خروجی جدید کپی می‌شود.
+قبل از رندر، SHA-256 فایل خام بررسی می‌شود. manifestهای قدیمی نسخهٔ ۱ و
+manifestهای نسخهٔ ۲ هر دو قابل‌استفاده‌اند.
+
+تنظیمات رندر در manifest ثبت می‌شوند و در رندر بعدی قابل استفاده‌اند؛ گزینهٔ
+صریحِ خط فرمان تنظیم ذخیره‌شده را تغییر می‌دهد. نبود فایل یا ناسازگاری hash
+خطا است. اختلاف نسخهٔ محیط یا محتوای فونت برای بازتولید قابل‌بررسی می‌ماند.
+
+--trim-empty-bottom فقط ردیف‌های خالی انتهای بخش انتخاب‌شده را حذف می‌کند؛
+فاصله‌های خالی میان خروجی‌ها حذف نمی‌شوند. ردیف بدون حرف که پس‌زمینهٔ رنگی،
+inverse، underline یا تزئین قابل‌دیدن دارد، خالی محسوب نمی‌شود.
+--padding-rows N تا N ردیف خالیِ موجود را برای حاشیه نگه می‌دارد؛ ردیف جدید
+به متن اضافه نمی‌کند. این ردیف‌ها در سقف --rows حساب می‌شوند. بدون برش فعال،
+این گزینه اثری ندارد.
+
+برای بافر جایگزین یا برنامهٔ تمام‌صفحه، برش با محافظت انجام می‌شود. اگر قصد
+برش این حالت را هم دارید، هر دو گزینه را صریحاً بدهید:
+--trim-empty-bottom --trim-fullscreen
+
+ردیف‌های حذف‌شده، ردیف‌های باقی‌مانده و وضعیت محافظت در manifest ثبت می‌شوند.
+
+۴. انتخاب یک یا چند بازهٔ ردیف
+-----------------------------
+tmux-breeze render shots/manifest.json --pane '%7' --buffer current --select-rows 1:16 --select-rows 30:45 -o selected
+
+شکل زیر نیز معادل است:
+tmux-breeze render shots/manifest.json --pane '%7' --buffer current --select-rows 1:16,30:45 -o selected-again
+
+شماره‌ها از ۱ شروع می‌شوند و انتهای بازه نیز شامل می‌شود. منظور ردیف‌های
+فیزیکی همان فایل ANSI و همان buffer است، از قدیمی‌ترین ردیفِ مانده در capture؛
+ردیف‌های خالی نیز شماره دارند. هر بازه جدا رندر و در صورت نیاز چندصفحه‌ای
+می‌شود. اگر چند buffer انتخاب شده باشند، همان بازه‌ها به هر کدام اعمال
+می‌شوند؛ برای محدودکردن از --pane و --buffer current|main|alternate استفاده
+کنید. انتخابگرهای window و pane در حالت render هم کار می‌کنند.
+
+وضعیت رنگ و استایلِ پیش از ابتدای بازه خوانده می‌شود؛ اگر رنگ در ردیف قبلی
+تنظیم شده باشد، ردیف انتخاب‌شده آن را از دست نمی‌دهد. انتخاب بازه از روی
+متن ساده یا بریدن بایت‌های ANSI انجام نمی‌شود.
+
+۵. صفحه‌بندی با بلوک‌های فرمان و خروجی
+-------------------------------------
+به‌جای تشخیص حدسی prompt از روی $ یا #، بازه‌های معتبر را در JSON بدهید.
+نمونهٔ blocks.json:
+
+{"blocks": [[1,12],[13,29],[30,48]]}
+
+tmux-breeze render shots/manifest.json --blocks blocks.json --rows 40 -o blocks
+
+لیست سادهٔ [[1,12],[13,29]] هم پذیرفته می‌شود. بلوک‌ها باید مرتب، بدون
+هم‌پوشانی و با شماره‌های ۱مبنا و انتهای شامل‌شونده باشند. این بلوک‌ها مرز
+صفحه‌بندی را راهنمایی می‌کنند؛ ردیف‌های خارج از آن‌ها حذف نمی‌شوند. حذف
+ردیف فقط از طریق --select-rows انجام می‌شود. بلوکی بلندتر از ظرفیت تصویر
+تقسیم می‌شود و شمارهٔ بخش و نگاشت به ردیف‌های منبع حفظ می‌شوند.
+
+برای تعریف جداگانهٔ هر buffer:
+
+{"buffers": {"%7:current": [[1,12],[13,29]], "%8:alternate": [[1,24]]}}
+
+کلید می‌تواند %PANE_ID:BUFFER یا مسیر نسبی capture.ansi در manifest اصلی
+باشد. در این حالت هر buffer انتخاب‌شده باید ورودی متناظر داشته باشد؛ نبود
+آن خطا است. این نسخه رویدادهای shell integration را به‌صورت خودکار جمع
+نمی‌کند و prompt را حدس نمی‌زند؛ منبع معتبرِ بلوک‌بندی، فایل کاربر است.
+
+۶. هندسهٔ رندر و خوانایی هنگام چاپ
+---------------------------------
+tmux-breeze render shots/manifest.json --report-width-mm 170 --min-font-pt 8 --preview -o print-check
+
+اندازهٔ مؤثر فونت با توجه به عرض فیزیکی تصویر در گزارش محاسبه می‌شود. اگر
+از حد تعیین‌شده کوچک‌تر باشد، هشدار می‌گیرید. افزایش عرض پیکسلی PNG، وقتی
+عرض قرارگیری در PDF ثابت است، اندازهٔ فیزیکی فونت را بزرگ‌تر نمی‌کند؛ فقط
+وضوح را تغییر می‌دهد. برای متن درشت‌تر، عرض فیزیکی را بیشتر کنید، از صفحهٔ
+افقی استفاده کنید یا در فرایندی صریح، خروجی را به نماهای کم‌ستون‌تر تقسیم
+کنید. ابزار پنجرهٔ زنده را resize نمی‌کند و خروجی را بازچینی نمی‌کند.
+
+بخش geometry هر تصویر شامل اندازهٔ سلول، ارتفاع ردیف و فونت پیش از scaling،
+ابعاد اولیه و نهایی، scale_x و scale_y واقعی، padding، محدودهٔ grid و محتوا
+و source_row_map است. هر ورودی نگاشت، شمارهٔ ردیف capture اصلی و محدودهٔ
+پیکسلی عمودی آن در تصویر اولیه و نهایی را دارد. محدوده‌ها نیمه‌باز هستند:
+ابتدا شامل می‌شود، انتها شامل نمی‌شود. محاسبهٔ چاپ و هشدارهای هر تصویر نیز
+همراه آن ذخیره می‌شود.
+
+۷. مرور تصاویر، نام کوتاه و قطعه‌کد گزارش
+----------------------------------------
+tmux-breeze render shots/manifest.json --trim-empty-bottom --preview --simple-names --snippets both --report-width-mm 170 -o report-ready
+
+--preview فایل preview.html و contact-sheet PNG می‌سازد. نام window، pane،
+buffer، بازهٔ ردیف‌ها، ابعاد و هشدارهای خوانایی کنار تصویر نمایش داده می‌شود؛
+هیچ برچسبی داخل محتوای ترمینال رسم نمی‌شود. برای بیش از ۶۰ تصویر، چند contact
+sheet ساخته می‌شود تا اندازهٔ bitmap بی‌حد نشود.
+
+--simple-names تصویرها را در images با نام‌هایی مانند زیر کپی می‌کند:
+lifetime-p02-rows-0001-0016.png
+اگر چند نام برخورد کنند، پسوند شناسهٔ window/buffer/بخش اضافه می‌شود. مسیر
+قدیمی و شناسه‌های اصلی در manifest می‌مانند و PNGهای اولیه حذف نمی‌شوند.
+
+--snippets latex|markdown|both فایل images.tex و/یا images.md تولید می‌کند.
+مسیر تصویر نسبی و محل توضیح به‌شکل TODO است؛ گزارش کامل ساخته نمی‌شود.
+مبنای مسیرها، پوشهٔ خروجی است. LaTeX به graphicx نیاز دارد. برای نام‌های
+حاوی کاراکتر خاص TeX یا حروف غیرلاتین، کپیِ بایت‌به‌بایت با نام ASCII در
+latex-images ساخته و نگاشت آن ثبت می‌شود. مسیرهای معمولی با underscore از
+\detokenize استفاده می‌کنند؛ لینک‌های Markdown نیز URL-encode می‌شوند.
+
+۸. خروجی JSON و کدهای خروج
+-------------------------
+tmux-breeze render shots/manifest.json --preview --json -o automated
+
+در capture/render با --json، stdout فقط یک شیء JSON دارد و پیام‌های پیشرفت
+و عیب‌یابی به stderr می‌روند. summary شامل status، مسیر مطلق manifest و
+تصاویر، counts و فهرست warnings و errors است. وضعیت‌ها عبارت‌اند از:
+success = کامل بدون هشدار
+warning = کامل با هشدار
+partial = بخشی موفق و بخشی خطادار
+failed = شکست بدون خروجی موفق
+
+کد خروج ۰: خروجی کامل بدون هشدار
+کد خروج ۱: خطا یا خروجی ناقص؛ فایل‌های موفق باقی می‌مانند
+کد خروج ۲: خروجی کامل همراه هشدار رندر، بازتولید یا خوانایی
+کد خروج ۱۳۰: قطع با Ctrl+C
+
+۹. بازتولید و تغییر هم‌زمان pane
+------------------------------
+manifest نسخهٔ ابزار، Python و وابستگی‌ها، مسیر و SHA-256 فونت‌ها و تنظیمات
+رندر را ثبت می‌کند. مسیر یکسانِ فونت به معنی محتوای یکسان آن نیست. فایل خام
+ANSI و hash آن همیشه حفظ می‌شوند.
+
+ابعاد pane پیش و پس از capture و زمان شروع و پایان هر buffer ثبت می‌شوند.
+اگر ابعاد حین ثبت تغییر کرده باشند، هشدار ثبت می‌شود. captureها پشت سر هم
+گرفته می‌شوند؛ snapshot اتمیک از کل session نیستند و برنامه‌ها متوقف نمی‌شوند.
+تنظیمات sandbox یا دادهٔ حذف‌شده از history با این ابزار تغییر نمی‌کند.
+
+۱۰. گزینه‌های تکمیلی و محدودیت‌ها
+--------------------------------
+--rows، --width، --font-size، --font-dir، --no-bold-bright، --timeout
+-L/--socket-name، -S/--socket، --version
+راهنمای کامل: tmux-breeze --help و tmux-breeze render --help
+
+--font-dir باید هر چهار فایل DejaVuSansMono.ttf، DejaVuSansMono-Bold.ttf،
+DejaVuSansMono-Oblique.ttf و DejaVuSansMono-BoldOblique.ttf را داشته باشد.
+فقط تاریخچهٔ هنوز موجود در tmux قابل ثبت است؛ افزایش history-limit پس از
+حذف، سطرهای قبلی را برنمی‌گرداند. خروجی بدون رنگ، رنگ‌آمیزی حدسی نمی‌شود.
+در صورت امکان ابزار را از بیرون session هدف اجرا کنید تا فرمان اجرای خود
+ابزار وارد محتوای همان pane نشود.
+
+این تصاویر، بازنمایی شبکهٔ متن tmux با پالت Breeze هستند؛ رندر Pillow الزاماً
+پیکسل‌به‌پیکسل با Qt/Konsole یکسان نیست. قاب یا نشانگر مصنوعی اضافه نمی‌شود.
+پشتیبانی کامل از font fallback، شکل‌دهی پیچیدهٔ فارسی/RTL، همهٔ emojiها و
+تصاویر Sixel/Kitty وجود ندارد. تست‌های رگرسیون شامل حروف ترکیبی، کاراکترهای
+دوستونی، دنباله‌های emoji، فارسی و متن ترکیبی هستند؛ این تست‌ها به معنی ادعای
+پشتیبانی کاملِ شکل‌دهی یا پوشش همهٔ glyphها نیستند. هشدارهای ثبت‌شده را ببینید.
+
+۱۱. تست
+-------
 python3 -m unittest -v
-تست زنده یک سرور tmux جدا با socket تصادفی می‌سازد و فقط همان سرور تست را
-در پایان می‌بندد. کد اصلی ابزار هیچ session یا سروری نمی‌سازد یا نمی‌بندد.
 
-مبنای پیاده‌سازی:
+تست‌ها شامل برش امن، تداوم استایل در انتخاب بازه و صفحه‌بندی، نگاشت هندسه،
+اندازهٔ چاپی، رندر آفلاین و سالم‌ماندن فایل خام، انتخاب window/pane، پیش‌نمایش
+و snippet، JSON و خطاهای جزئی هستند. روی Linux/Unix دارای tmux، تست زنده یک
+سرور جدا با socket تصادفی می‌سازد و فقط همان را در پایان می‌بندد. ابزار اصلی
+سرور یا session نمی‌سازد و نمی‌بندد.
+
+منابع:
 https://man.openbsd.org/tmux#capture-pane
-https://raw.githubusercontent.com/tmux/tmux/master/cmd-capture-pane.c
-https://raw.githubusercontent.com/KDE/konsole/master/data/color-schemes/Breeze.colorscheme
-https://raw.githubusercontent.com/KDE/konsole/master/src/Screen.cpp
-https://raw.githubusercontent.com/KDE/konsole/master/src/characters/CharacterColor.h
-
-اعتبارسنجی در محیط تهیهٔ این بسته: ۱۷ تست خودکار پاس شده؛ تست زندهٔ tmux
-در محیط ویندوز در دسترس نبوده و اجرا نشده است. تصاویر نمونهٔ داخلیِ تست
-از دادهٔ fixture ساخته و از نظر چیدمان بررسی شده‌اند.
+https://github.com/KDE/konsole/blob/master/data/color-schemes/Breeze.colorscheme

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tmux-breeze"
+version = "0.2.0"
+description = "Export and rerender tmux captures as report-ready Konsole Breeze PNGs"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["Pillow>=9.4", "wcwidth>=0.2.5"]
+
+[project.scripts]
+tmux-breeze = "tmux_shots:main"
+
+[tool.setuptools]
+py-modules = ["tmux_shots", "breeze_core", "breeze_artifacts"]

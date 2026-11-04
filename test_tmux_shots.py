@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -105,6 +106,7 @@ class FakeTmux(app.Tmux):
     def call(self,*args):
         self.calls.append(args)
         command=args[0]
+        if command=='-V':return b'tmux 3.4\n'
         if command=='list-sessions':return b'$0\n$1\n'
         if command=='display-message':
             target=args[args.index('-t')+1]
@@ -142,7 +144,7 @@ class ExportTests(unittest.TestCase):
                     self.assertTrue((output/buffer['capture_file']).exists())
                     spans=[(image['first_row'],image['last_row']) for image in buffer['images']]
                     self.assertEqual(spans,[(1,24)] if buffer['buffer']=='alternate' else [(1,40),(41,80),(81,95)])
-            self.assertTrue(all(call[0] in {'list-sessions','list-windows','list-panes','display-message','capture-pane'} for call in fake.calls))
+            self.assertTrue(all(call[0] in {'-V','list-sessions','list-windows','list-panes','display-message','capture-pane'} for call in fake.calls))
             captures=[call for call in fake.calls if call[0]=='capture-pane']
             self.assertTrue(all('-e' in c and '-N' in c and '-J' not in c and '-C' not in c for c in captures))
             self.assertEqual(len([c for c in captures if '-a' in c]),1)
@@ -195,7 +197,7 @@ class ExportTests(unittest.TestCase):
                 self.assertEqual(captured,set(expected))
                 data=json.loads((output/'manifest.json').read_text(encoding='utf-8'))
                 self.assertEqual([p['pane_id'] for p in data['panes']],expected)
-                self.assertEqual(data['selection'],{'window':args.window,'pane':args.pane})
+                self.assertEqual(data['selection'],{'window':args.window,'pane':args.pane,'buffer':args.buffer})
 
     def test_bad_selection_does_not_capture_or_create_output(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -11,3 +11,6 @@ captures/
 tmp/
 *.ansi
 .DS_Store
+build/
+dist/
+*.egg-info/

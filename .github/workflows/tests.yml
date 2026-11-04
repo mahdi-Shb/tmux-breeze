@@ -9,8 +9,9 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
         python-version: ['3.10', '3.13']
     steps:
@@ -19,8 +20,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install tmux and fonts
-        run: sudo apt-get update && sudo apt-get install -y tmux fonts-dejavu-core
+        run: sudo apt-get update && sudo apt-get install -y tmux fonts-dejavu
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
+      - name: Check installed command
+        run: |
+          python -m pip install --no-deps .
+          tmux-breeze --version
       - name: Run unit and live tmux tests
         run: python -m unittest -v
